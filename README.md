@@ -3,7 +3,7 @@
 
 A Behavior plugin for CakePHP that extends the idea of counterCache and counterScope to more fields.
 
-Note: this is a git extension of the original AggregateCache behavior by Vincent Lizzi.
+Note: this is made for Cake 3.x upgraded from git extension of AggregateCache behavior by CWB IT.
 
 ## Installation
 ====
@@ -14,7 +14,7 @@ Add the plugin to your project's `composer.json` - something like this:
 
 	{
 		"require": {
-			"cwbit/cakephp-aggregate-cache": "dev-master"
+			"miheretab/cakephp-aggregate-cache": "3.x"
 		}
 	}
 
@@ -30,7 +30,7 @@ _[GIT Submodule]_
 
 In your `app` directory type:
 
-    git submodule add -b master git://github.com/cwbit/cakephp-aggregate-cache.git Plugin/AggregateCache
+    git submodule add -b 3.x git://github.com/miheretab/cakephp-aggregate-cache.git Plugin/AggregateCache
     git submodule init
     git submodule update
 
@@ -38,7 +38,7 @@ _[GIT Clone]_
 
 In your `app/Plugin` directory type:
 
-    git clone -b master git://github.com/cwbit/cakephp-aggregate-cache.git AggregateCache
+    git clone -b 3.x git://github.com/miheretab/cakephp-aggregate-cache.git AggregateCache
 
 
 ### Enable plugin
@@ -52,9 +52,6 @@ If you are already using `CakePlugin::loadAll();`, then this is not necessary.
 
 ## Usage
 
-The following was originally plagiarized from AggregateCache Behavior on the bakery. Modifications to the original text will be made as the plugin progresses
-
-by vincentm8	 on August 23, 2010
 
 AggregateCache behavior caches the result of aggregate calculations (min, max, avg, sum) in tables that are joined by a hasMany / belongsTo association. I usually think of aggregates as being easy to calculate when needed, though in situations where the aggregate value is needed more often than the underlying data changes it makes sense to cache the calculated value. Caching the result of the aggregate calculation also makes it easier to write queries that filter or sort on the aggregate value. This behavior makes caching the result of aggregate calculations easy. AggregateCache is based on the CounterCache behavior ([url]http://bakery.cakephp.org/articles/view/countercache-or-counter_cache-behavior[/url]).
 To introduce the AggregateCache behavior let's use a posts and comments example. The date of the most recent comment, and the maximum and average ratings from each comment will be cached to the Post model, which will make it easy to use this information for display or as filters in other queries.
@@ -89,51 +86,37 @@ CREATE TABLE `comments` (
   KEY `comments_ibfk_1` (`post_id`), 
   CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8; 
-```
-#### Post model:
 
+#### Comments table:
 ```php
 <?php  
-class Post extends AppModel { 
-    var $name = 'Post'; 
-    var $validate = array('name'=>'notempty'); 
-    var $hasMany = array('Comment'); 
-} 
-?>
-```
+class CommentsTable extends Table
+{
 
-#### Comment model:
-```php
-<?php  
-class Comment extends AppModel { 
-    var $name = 'Comment'; 
-     
-    var $actsAs = array( 
-        'AggregateCache'=>array( 
-            'created'=>array(		#Syntax OPT1 - 'created' is the name of the name of the field we want to trigger by
-                 'model'=>'Post',	# Post is the model we want to update with the new details
-                 'max'=>'latest_comment_date' # 'Post.latest_comment_date' is the field we'll update with the 'max' function (based on 'Comment.created' as indicated above)
-            ),
-            array(
-                 'field'=>'rating',	#Syntax OPT2 - this is more explicit and easy to read
-                 'model'=>'Post', 	#The Model which holds the cache keys
-                 'avg'=>'average_rating', # Post.average_rating will be set to the 'avg' of 'Comment.rating'
-                 'max'=>'best_rating',	  # Post.best_rating will be set to the 'max' of 'Comment.rating'	
-                 'conditions'=>array('visible'=>'1'), # only look at Comments where Comment.visible = 1
-                 'recursive'=>-1	# don't need related model info
-           ), 
-    )); 
-     
-    var $validate = array( 
-        'name'=>'notempty',  
-        'post_id'=>'numeric',  
-        'rating'=>'numeric',  
-        'visible'=>'boolean' 
-    ); 
-
-    var $belongsTo = array('Post'); 
-} 
-?>
+	//...
+    public function initialize(array $config)
+    {
+		...
+        $this->belongsTo('Posts', [
+            'foreignKey' => 'post_id'
+        ]);
+		
+		$this->addBehavior('AggregateCache.AggregateCache', [
+				'created' => [      #Syntax OPT1 - 'created' is the name of the name of the field we want to trigger by
+					 'model'=>'Posts',   # Post is the model we want to update with the new details
+					 'max'=>'latest_comment_date' # 'Post.latest_comment_date' is the field we'll update with the 'max' function (based on 'Comment.created' as indicated above)
+				],
+				[
+					 'field'=>'rating', #Syntax OPT2 - this is more explicit and easy to read
+					 'model'=>'Posts',   #The Model which holds the cache keys
+					 'avg'=>'average_rating', # Post.average_rating will be set to the 'avg' of 'Comment.rating'
+					 'max'=>'best_rating',    # Post.best_rating will be set to the 'max' of 'Comment.rating'   
+					 'conditions'=>array('visible'=>'1'), # only look at Comments where Comment.visible = 1
+					 'recursive'=>-1    # don't need related model info
+			   ], 
+		]);		
+    }
+	//...
 ```
 
 The AggregateCache behavior requires a config array that specifies, at minimum, the field and aggregate function to use in the aggregate query, and the model and field to store the cached value. The example above shows the minimal syntax in the first instance (which specifies the aggregate field as a key to the config array), and the normal syntax in the second instance. The second instance also uses the optional parameters for conditions and recursive, and specifies more than one aggregate to be calculated and stored.
@@ -141,17 +124,17 @@ The AggregateCache behavior requires a config array that specifies, at minimum, 
 
 To show this more clearly, the config array can specify:
 ```
-var $actsAs = array('AggregateCache'=>array(array( 
-    'field'=>'name of the field to aggregate',  
-    'model'=>'belongsTo model alias to store the cached values',  
-    'min'=>'field name to store the minimum value',  
-    'max'=>'field name to store the maximum value', 
-    'sum'=>'field name to store the sum value', 
-    'avg'=>'field name to store the average value' 
-    'count'=>'field name to store the count value' //allows for multiple versions of counterCache
-    'conditions'=>array(), // conditions to use in the aggregate query 
-    'recursive'=>-1 // recursive setting to use in the aggregate query 
-))); 
+ $this->addBehavior('AggregateCache', [ 
+   'field'=>'name of the field to aggregate', 
+   'model'=>'belongsTo model alias to store the cached values', 
+   'min'=>'field name to store the minimum value', 
+   'max'=>'field name to store the maximum value', 
+   'sum'=>'field name to store the sum value', 
+   'avg'=>'field name to store the average value' 
+   'count' => 'field name to store the count value', 
+   'conditions'=>array(), // conditions to use in the aggregate query 
+   'recursive'=>-1 // recursive setting to use in the aggregate query 
+]); 
 ```
 Field and model must be specified, and at least one of min, max, sum, or avg must be specified.
 
