@@ -18,32 +18,9 @@ Add the plugin to your project's `composer.json` - something like this:
 		}
 	}
 
-Because this plugin has the type `cakephp-plugin` set in it's own `composer.json` composer knows to install it inside your `/Plugins` directory (rather than in the usual 'Vendor' folder). It is recommended that you add `/Plugins/AggregateCache` to your cake app's .gitignore file. (Why? [read this](http://getcomposer.org/doc/faqs/should-i-commit-the-dependencies-in-my-vendor-directory.md).)
-
-_[Manual]_
-
-* Download and unzip the repo (see the download button somewhere on this git page)
-* Copy the resulting folder into `app/Plugin`
-* Rename the folder you just copied to `AggregateCache`
-
-_[GIT Submodule]_
-
-In your `app` directory type:
-
-    git submodule add -b 3.x git://github.com/miheretab/cakephp-aggregate-cache.git Plugin/AggregateCache
-    git submodule init
-    git submodule update
-
-_[GIT Clone]_
-
-In your `app/Plugin` directory type:
-
-    git clone -b 3.x git://github.com/miheretab/cakephp-aggregate-cache.git AggregateCache
-
-
 ### Enable plugin
 
-In 2.0 you need to enable the plugin your `app/Config/bootstrap.php` file:
+In 2.0 you need to enable the plugin your `config/bootstrap.php` file:
 ```
     CakePlugin::load('AggregateCache');
 ```
@@ -93,6 +70,7 @@ CREATE TABLE `comments` (
   KEY `comments_ibfk_1` (`post_id`), 
   CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8; 
+```
 
 #### Comments table:
 ```php
@@ -125,6 +103,7 @@ class CommentsTable extends Table
 		]);		
     }
 	//...
+?>
 ```
 
 The AggregateCache behavior requires a config array that specifies, at minimum, the field and aggregate function to use in the aggregate query, and the model and field to store the cached value. The example above shows the minimal syntax in the first instance (which specifies the aggregate field as a key to the config array), and the normal syntax in the second instance. The second instance also uses the optional parameters for conditions and recursive, and specifies more than one aggregate to be calculated and stored.
