@@ -1,15 +1,15 @@
 {
-	"name": "cwbit/cakephp-aggregate-cache",
+	"name": "miheretab/cakephp-aggregate-cache",
     "description" : "A Behavior plugin for CakePHP that extends the idea of counterCache and counterScope to more fields",
     "license" : "WTFPL",
     "type" : "cakephp-plugin",
     "authors": [
         {
-            "name":         "CWBIT",
+            "name":         "Miheretab Alemu",
             "role":         "Maintainer"
         },
         {
-            "name":         "Vincent Lizzi",
+            "name":         "CWB IT",
             "role":         "Original Author"
         }
     ],
