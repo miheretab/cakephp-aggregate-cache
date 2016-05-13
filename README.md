@@ -49,6 +49,13 @@ In 2.0 you need to enable the plugin your `app/Config/bootstrap.php` file:
 ```
 If you are already using `CakePlugin::loadAll();`, then this is not necessary.
 
+_[Use as Model]_
+
+Or you can simply put it under src/Model/Behavior and change the namespace in AggregateCacheBehavior
+
+```
+namespace App\Model\Behavior;
+```
 
 ## Usage
 
@@ -101,6 +108,7 @@ class CommentsTable extends Table
             'foreignKey' => 'post_id'
         ]);
 		
+		//use 'AggregateCache.AggregateCache' if it is as a Plugin or 'AggregateCache' if it is as Model Behavior
 		$this->addBehavior('AggregateCache.AggregateCache', [
 				'created' => [      #Syntax OPT1 - 'created' is the name of the name of the field we want to trigger by
 					 'model'=>'Posts',   # Post is the model we want to update with the new details

@@ -25,7 +25,7 @@
  *           'foreignKey' => 'post_id'
  *       ]);
  *		
- *		$this->addBehavior('AggregateCache', [
+ *		$this->addBehavior('AggregateCache.AggregateCache', [
  *				'created' => [      #Syntax OPT1 - 'created' is the name of the name of the field we want to trigger by
  *					 'model'=>'Posts',   # Post is the model we want to update with the new details
  *					 'max'=>'latest_comment_date' # 'Post.latest_comment_date' is the field we'll update with the 'max' function (based on 'Comment.created' as indicated above)
